@@ -7,11 +7,29 @@ class Automato {
     this.estadosFinais = estadosFinais;
   }
 
-  processar(palavra) {}
+  processar(palavra) {
+    let estadoAtual = this.estadoInicial;
+    for (let i = 0; i < palavra.length; i++) {
+      const simbolo = palavra[i];
+      try {
+        estadoAtual = this.programa.transicoes[estadoAtual][simbolo];
+        if (!estadoAtual) {
+          return false;
+        }
+      } catch (e) {
+        console.error(e);
+        return false;
+      }
+    }
+    return this.estadosFinais.includes(estadoAtual);
+  }
 }
 
 class Estado {
-  
+  constructor(nome, isFinal) {
+    this.nome = nome;
+    this.isFinal = isFinal;
+  }
 }
 
 class Alfabeto {
@@ -25,6 +43,10 @@ class Alfabeto {
 }
 
 class Programa {
+  
+  constructor(transicoes) {
+    this.transicoes = transicoes;
+  }
   
 }
 
