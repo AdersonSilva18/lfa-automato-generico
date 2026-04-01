@@ -1,3 +1,14 @@
+const readline = require('readline');
+
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
+
+function prompt(pergunta) {
+  return new Promise((resolve) => rl.question(pergunta, resolve));
+}
+
 class Automato {
   constructor(alfabeto, estados, programa, estadoInicial, estadosFinais) {
     this.alfabeto = alfabeto;
@@ -13,46 +24,29 @@ class Automato {
       const simbolo = palavra[i];
       try {
         estadoAtual = this.programa.transicoes[estadoAtual][simbolo];
-        if (!estadoAtual) {
-          return false;
-        }
+        if (!estadoAtual) return false;
       } catch (e) {
-        console.error(e);
         return false;
       }
     }
     return this.estadosFinais.includes(estadoAtual);
   }
 
-  popular() {
-    console.log('escreva o alfabeto, dividido por virgula')
-    const alfabeto = prompt('alfabeto: ').split(',');
-    this.alfabeto = new Alfabeto();
-    alfabeto.forEach((s) => this.alfabeto.addSimbolo(s.trim()));
+  async validar() {
+    console.log('\nRegra: a palavra é aceita se o número de "a" for par (0, 2, 4...).');
+    console.log('Exemplos: "" aa bb aab baa => ACEITA | a ab aaa => REJEITADA\n');
 
-    console.log('escreva os estados, dividido por virgula')
-    const estados = prompt('estados: ').split(',');
-    this.estados = [];
-    estados.forEach((s) => this.estados.push(new Estado(s.trim())));
+    while (true) {
+      const palavra = await prompt('palavra (ou "sair"): ');
 
-    console.log('escreva o programa, como uma matriz separada por vírgula, exemplo: q0,a,q1')
-    const programa = prompt('programa: ');
-    const transicoes = {};
-    programa.split('\n').forEach((linha) => {
-      const [ea, s, ep] = linha.split(',').map((x) => x.trim());
-      if (!transicoes[ea]) transicoes[ea] = {};
-      transicoes[ea][s] = ep;
-    });
-    this.programa = new Programa(transicoes);
+      if (palavra.trim().toLowerCase() === 'sair') {
+        rl.close();
+        break;
+      }
 
-    console.log('escreva o estado inicial')
-    const estadoInicial = prompt('estado inicial: ');
-    this.estadoInicial = estadoInicial.trim();
-
-    console.log('escreva os estados finais, dividido por virgula')
-    const estadosFinais = prompt('estados finais: ').split(',');
-    this.estadosFinais = estadosFinais.map((s) => s.trim());
-
+      const resultado = this.processar(palavra.trim());
+      console.log(resultado ? '  ACEITA\n' : '  REJEITADA\n');
+    }
   }
 }
 
@@ -79,7 +73,7 @@ class Programa {
   }
 }
 
-function testar() {
+async function testar() {
   const alfabeto = new Alfabeto();
   alfabeto.addSimbolo('a');
   alfabeto.addSimbolo('b');
@@ -113,6 +107,8 @@ function testar() {
   });
 
   console.log(`\n${passou}/${casos.length} testes passaram`);
+
+  await automato.validar();
 }
 
 testar();
