@@ -44,16 +44,25 @@ class Automato {
     this.estados = [];
     estados.forEach((s) => this.estados.push(new Estado(s.trim())));
 
-    console.log(
-      "escreva o programa, como uma matriz separada por vírgula, exemplo: q0,a,q1",
-    );
-    const programa = prompt("programa: ");
+    console.log("cadastre as transições (formato: estado_atual, simbolo, proximo_estado)");
+    console.log("digite 'fim' para encerrar o cadastro\n");
     const transicoes = {};
-    programa.split("\n").forEach((linha) => {
-      const [ea, s, ep] = linha.split(",").map((x) => x.trim());
+    let count = 0;
+    while (true) {
+      const linha = prompt(`transição ${count + 1}: `);
+      if (linha.toLowerCase() === "fim") break;
+      const partes = linha.split(",").map((x) => x.trim());
+      if (partes.length !== 3) {
+        console.log("formato inválido! use: estado_atual, simbolo, proximo_estado");
+        continue;
+      }
+      const [ea, s, ep] = partes;
       if (!transicoes[ea]) transicoes[ea] = {};
       transicoes[ea][s] = ep;
-    });
+      count++;
+      console.log(`  ✓ δ(${ea}, ${s}) = ${ep}`);
+    }
+    console.log(`\n${count} transição(ões) cadastrada(s)\n`);
     this.programa = new Programa(transicoes);
 
     console.log("escreva o estado inicial");
