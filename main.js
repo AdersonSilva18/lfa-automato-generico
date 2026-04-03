@@ -1,10 +1,10 @@
-const fs = require('fs');
+const fs = require("fs");
 
 function prompt(question) {
   process.stdout.write(question);
   const buf = Buffer.alloc(1024);
   const n = fs.readSync(0, buf, 0, buf.length, null);
-  return buf.toString('utf8', 0, n).trimEnd();
+  return buf.toString("utf8", 0, n).trimEnd();
 }
 
 class Automato {
@@ -63,7 +63,7 @@ class Automato {
     console.log("escreva os estados finais, dividido por virgula");
     const estadosFinais = prompt("estados finais: ").split(",");
     this.estadosFinais = estadosFinais.map((s) => s.trim());
-    
+
     const palavra = prompt("escreva a palavra a ser processada: ");
     console.log(this.processar(palavra));
   }
@@ -130,8 +130,16 @@ function testar() {
   console.log(`\n${passou}/${casos.length} testes passaram`);
 }
 
-// testar();
-//
+const modo = process.argv[2];
 
-const automato = new Automato();
-automato.popular();
+if (modo === "testar") {
+  testar();
+} else if (modo === "popular") {
+  const automato = new Automato();
+  automato.popular();
+} else {
+  console.log("Uso: node main.js <modo>");
+  console.log("  testar   - executa os casos de teste automáticos");
+  console.log("  popular  - monta e testa um autômato de forma interativa");
+  process.exit(1);
+}

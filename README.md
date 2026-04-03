@@ -20,7 +20,39 @@ Assim, ele **aceita palavras com quantidade par de letras `a`**.
 - `Estado`: representa cada estado
 - `Alfabeto`: guarda os símbolos permitidos
 - `Programa`: guarda as transições entre estados
-- `testar()`: monta um exemplo pronto e executa casos de teste
+- `testar()`: monta um exemplo pronto e executa casos de teste automaticamente
+- `popular()`: permite montar e testar um autômato de forma interativa via terminal
+
+## Como executar
+
+O modo de execução é definido por um parâmetro passado na linha de comando:
+
+```sh
+node main.js <modo>
+```
+
+### Modos disponíveis
+
+| Modo      | Descrição                                              |
+|-----------|--------------------------------------------------------|
+| `testar`  | Executa os casos de teste automáticos do exemplo pronto |
+| `popular` | Monta e testa um autômato de forma interativa          |
+
+### Exemplos
+
+Executar os testes automáticos:
+
+```sh
+node main.js testar
+```
+
+Montar um autômato interativamente:
+
+```sh
+node main.js popular
+```
+
+Se nenhum parâmetro for informado, o programa exibe as instruções de uso e encerra.
 
 ## Palavras sugeridas para teste
 
