@@ -1,10 +1,12 @@
-const fs = require("fs");
+const readline = require('readline');
 
-function prompt(question) {
-  process.stdout.write(question);
-  const buf = Buffer.alloc(1024);
-  const n = fs.readSync(0, buf, 0, buf.length, null);
-  return buf.toString("utf8", 0, n).trimEnd();
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
+
+function prompt(pergunta) {
+  return new Promise((resolve) => rl.question(pergunta, resolve));
 }
 
 class Automato {
@@ -22,59 +24,29 @@ class Automato {
       const simbolo = palavra[i];
       try {
         estadoAtual = this.programa.transicoes[estadoAtual][simbolo];
-        if (!estadoAtual) {
-          return false;
-        }
+        if (!estadoAtual) return false;
       } catch (e) {
-        console.error(e);
         return false;
       }
     }
     return this.estadosFinais.includes(estadoAtual);
   }
 
-  popular() {
-    console.log("escreva o alfabeto, dividido por virgula");
-    const alfabeto = prompt("alfabeto: ").split(",");
-    this.alfabeto = new Alfabeto();
-    alfabeto.forEach((s) => this.alfabeto.addSimbolo(s.trim()));
+  async validar() {
+    console.log('\nRegra: a palavra é aceita se o número de "a" for par (0, 2, 4...).');
+    console.log('Exemplos: "" aa bb aab baa => ACEITA | a ab aaa => REJEITADA\n');
 
-    console.log("escreva os estados, dividido por virgula");
-    const estados = prompt("estados: ").split(",");
-    this.estados = [];
-    estados.forEach((s) => this.estados.push(new Estado(s.trim())));
-
-    console.log("cadastre as transições (formato: estado_atual, simbolo, proximo_estado)");
-    console.log("digite 'fim' para encerrar o cadastro\n");
-    const transicoes = {};
-    let count = 0;
     while (true) {
-      const linha = prompt(`transição ${count + 1}: `);
-      if (linha.toLowerCase() === "fim") break;
-      const partes = linha.split(",").map((x) => x.trim());
-      if (partes.length !== 3) {
-        console.log("formato inválido! use: estado_atual, simbolo, proximo_estado");
-        continue;
+      const palavra = await prompt('palavra (ou "sair"): ');
+
+      if (palavra.trim().toLowerCase() === 'sair') {
+        rl.close();
+        break;
       }
-      const [ea, s, ep] = partes;
-      if (!transicoes[ea]) transicoes[ea] = {};
-      transicoes[ea][s] = ep;
-      count++;
-      console.log(`  ✓ δ(${ea}, ${s}) = ${ep}`);
+
+      const resultado = this.processar(palavra.trim());
+      console.log(resultado ? '  ACEITA\n' : '  REJEITADA\n');
     }
-    console.log(`\n${count} transição(ões) cadastrada(s)\n`);
-    this.programa = new Programa(transicoes);
-
-    console.log("escreva o estado inicial");
-    const estadoInicial = prompt("estado inicial: ");
-    this.estadoInicial = estadoInicial.trim();
-
-    console.log("escreva os estados finais, dividido por virgula");
-    const estadosFinais = prompt("estados finais: ").split(",");
-    this.estadosFinais = estadosFinais.map((s) => s.trim());
-
-    const palavra = prompt("escreva a palavra a ser processada: ");
-    console.log(this.processar(palavra));
   }
 }
 
@@ -101,54 +73,42 @@ class Programa {
   }
 }
 
-function testar() {
+async function testar() {
   const alfabeto = new Alfabeto();
-  alfabeto.addSimbolo("a");
-  alfabeto.addSimbolo("b");
+  alfabeto.addSimbolo('a');
+  alfabeto.addSimbolo('b');
 
-  const estados = [new Estado("q0"), new Estado("q1")];
+  const estados = [new Estado('q0'), new Estado('q1')];
 
   const programa = new Programa({
-    q0: { a: "q1", b: "q0" },
-    q1: { a: "q0", b: "q1" },
+    q0: { a: 'q1', b: 'q0' },
+    q1: { a: 'q0', b: 'q1' },
   });
 
-  const automato = new Automato(alfabeto, estados, programa, "q0", ["q0"]);
+  const automato = new Automato(alfabeto, estados, programa, 'q0', ['q0']);
 
   const casos = [
-    { palavra: "", esperado: true },
-    { palavra: "aa", esperado: true },
-    { palavra: "bb", esperado: true },
-    { palavra: "aab", esperado: true },
-    { palavra: "baa", esperado: true },
-    { palavra: "a", esperado: false },
-    { palavra: "ab", esperado: false },
-    { palavra: "aaa", esperado: false },
+    { palavra: '',    esperado: true  },
+    { palavra: 'aa',  esperado: true  },
+    { palavra: 'bb',  esperado: true  },
+    { palavra: 'aab', esperado: true  },
+    { palavra: 'baa', esperado: true  },
+    { palavra: 'a',   esperado: false },
+    { palavra: 'ab',  esperado: false },
+    { palavra: 'aaa', esperado: false },
   ];
 
   let passou = 0;
   casos.forEach(({ palavra, esperado }) => {
     const resultado = automato.processar(palavra);
     const ok = resultado === esperado;
-    console.log(
-      `"${palavra}" => ${resultado} ${ok ? "✓" : `✗ (esperado ${esperado})`}`,
-    );
+    console.log(`"${palavra}" => ${resultado} ${ok ? '✓' : `✗ (esperado ${esperado})`}`);
     if (ok) passou++;
   });
 
   console.log(`\n${passou}/${casos.length} testes passaram`);
+
+  await automato.validar();
 }
 
-const modo = process.argv[2];
-
-if (modo === "testar") {
-  testar();
-} else if (modo === "popular") {
-  const automato = new Automato();
-  automato.popular();
-} else {
-  console.log("Uso: node main.js <modo>");
-  console.log("  testar   - executa os casos de teste automáticos");
-  console.log("  popular  - monta e testa um autômato de forma interativa");
-  process.exit(1);
-}
+testar();
